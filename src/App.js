@@ -175,16 +175,15 @@ function WatchedMovies() {
 function SelectedMovieDetial({ selectedMovieId, handleMovieDetialClose }) {
   const [movieDetials, setMovieDetials] = useState("");
   const {
-    Title,
-    Year,
-    Poster,
-    Runtime,
+    Title: title,
+    Poster: poster,
+    Runtime: runtime,
     imdbRating,
-    Plot,
-    Released,
-    Actors,
-    Genre,
-    Director,
+    Plot: plot,
+    Released: released,
+    Actors: actors,
+    Director: director,
+    Genre: genre,
   } = movieDetials;
   useEffect(() => {
     async function fetchMovieDetials() {
@@ -198,11 +197,58 @@ function SelectedMovieDetial({ selectedMovieId, handleMovieDetialClose }) {
   }, [selectedMovieId]);
 
   return (
-    <div>
-      <button className="btn-back" onClick={handleMovieDetialClose}>
-        &larr;
-      </button>
-      {selectedMovieId}
+    <div className="details">
+      {/* {isLoading ? (
+        <Loader />
+      ) :  */}
+      (
+      <>
+        <header>
+          <button className="btn-back" onClick={handleMovieDetialClose}>
+            &larr;
+          </button>
+          <img src={poster} alt="movie poster" />
+          <div className="details-overview">
+            <h2>{title}</h2>
+            <p>
+              {released} &bull; {runtime}
+            </p>
+            <p>{genre}</p>
+            <p>
+              <span>⭐️</span>
+              {imdbRating} IMDb rating
+            </p>
+          </div>
+        </header>
+        <section>
+          {/* <div className="rating">
+            {!isWatched ? (
+              <>
+                <StarRating
+                  maxRating={10}
+                  size={24}
+                  onSetRating={setUserRating}
+                />
+                {userRating > 0 && (
+                  <button className="btn-add" onClick={handleAdd}>
+                    + Add to list
+                  </button>
+                )}
+              </>
+            ) : (
+              <p>
+                You rated with movie {watchedUserRating} <span>⭐️</span>
+              </p>
+            )}
+          </div> */}
+          <p>
+            <em>{plot}</em>
+          </p>
+          <p>Starring {actors}</p>
+          <p>Directed by {director}</p>
+        </section>
+      </>
+      ){/* } */}
     </div>
   );
 }
@@ -227,7 +273,7 @@ export default function App() {
     setSelectedMovieID(null);
   };
   const handleSelectedId = function (id) {
-    setSelectedMovieID((prevSelectedId) => (id == prevSelectedId ? null : id));
+    setSelectedMovieID((prevSelectedId) => (id === prevSelectedId ? null : id));
   };
   useEffect(
     () =>
