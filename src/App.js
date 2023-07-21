@@ -309,15 +309,7 @@ export default function App() {
     setSelectedMovieID(null);
   };
 
-  // const handleWatachedMovies = function (arr, watchedMovieID) {
-  //   setIsWatched(false);
-  //   console.log({ arr, watchedMovieID });
-  //   for (const obj of arr) {
-  //     if (obj.imdbID === watchedMovieID) return setIsWatched(true);
-  //   }
-  // };
   const handleSelectedMovie = function (id) {
-    // console.log(id);
     for (const watchedMovieList of watched) {
       console.log(watchedMovieList.imdbID === id);
     }
@@ -325,15 +317,23 @@ export default function App() {
   const handleSelectedId = function (id) {
     setSelectedMovieID((prevSelectedId) => (id === prevSelectedId ? null : id));
   };
+  useEffect(() => {
+    document.addEventListener("keydown", function (event) {
+      if (event.key !== "Escape") return;
+      handleMovieDetialClose();
+    });
+  }, []);
   useEffect(
-    () =>
-      async function () {
+    function searchMoviRequest() {
+      async function callMovie() {
+        const controller = new AbortController();
         try {
           if (!tempMovieName) return "";
           setIsLoading(true);
           setError(null);
           let res = await fetch(
-            `https://www.omdbapi.com/?s=${tempMovieName}&apikey=${key}`
+            `https://www.omdbapi.com/?s=${tempMovieName}&apikey=${key}`,
+            { signal: controller.signal }
           );
           if (!res.ok) throw new Error("Somthing Went Wrong");
 
@@ -346,7 +346,13 @@ export default function App() {
         } finally {
           setIsLoading(false);
         }
-      },
+
+        return function () {
+          controller.abort();
+        };
+      }
+      callMovie();
+    },
     [tempMovieName]
   );
   return (
