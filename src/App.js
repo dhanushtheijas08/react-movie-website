@@ -303,8 +303,14 @@ export default function App() {
   const [tempMovieName, setTempMovieName] = useState("");
   const [error, setError] = useState(null);
   const [selectedMovieID, setSelectedMovieID] = useState(null);
-  const [watched, setWatched] = useState([]);
-  const [isWatched, setIsWatched] = useState(false);
+  const [watched, setWatched] = useState(function () {
+    const storedMovieList = localStorage.getItem("watchedMoviesList");
+    const moviesList = JSON.parse(storedMovieList);
+    console.log(moviesList.Title);
+
+    return moviesList;
+  });
+  // const [isWatched, setIsWatched] = useState(false);
   const handleMovieDetialClose = function () {
     setSelectedMovieID(null);
   };
@@ -318,10 +324,15 @@ export default function App() {
     setSelectedMovieID((prevSelectedId) => (id === prevSelectedId ? null : id));
   };
   useEffect(() => {
-    document.addEventListener("keydown", function (event) {
+    function escapeKey(event) {
       if (event.key !== "Escape") return;
       handleMovieDetialClose();
-    });
+    }
+    document.addEventListener("keydown", escapeKey);
+
+    return function () {
+      document.removeEventListener("keydown", escapeKey);
+    };
   }, []);
   useEffect(
     function searchMoviRequest() {
@@ -354,6 +365,14 @@ export default function App() {
       callMovie();
     },
     [tempMovieName]
+  );
+
+  useEffect(
+    function () {
+      const moviesList = JSON.stringify(watched);
+      localStorage.setItem("watchedMoviesList", moviesList);
+    },
+    [watched]
   );
   return (
     <>
