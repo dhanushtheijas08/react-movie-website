@@ -1,28 +1,5 @@
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useState } from "react";
 import Star from "./Star";
-
-const tempWatchedData = [
-  {
-    imdbID: "tt1375666",
-    Title: "Inception",
-    Year: "2010",
-    Poster:
-      "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
-    runtime: 148,
-    imdbRating: 8.8,
-    userRating: 10,
-  },
-  {
-    imdbID: "tt0088763",
-    Title: "Back to the Future",
-    Year: "1985",
-    Poster:
-      "https://m.media-amazon.com/images/M/MV5BZmU0M2Y1OGUtZjIxNi00ZjBkLTg1MjgtOWIyNThiZWIwYjRiXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_SX300.jpg",
-    runtime: 116,
-    imdbRating: 8.5,
-    userRating: 9,
-  },
-];
 
 const key = "ec57ae9c";
 
@@ -73,9 +50,14 @@ function NavBar({ children, handleMovieChange, tempMovieName }) {
   );
 }
 
-function MovieCard({ movie, handleSelectedId }) {
+function MovieCard({ movie, handleSelectedId, handleSelectedMovie }) {
   return (
-    <li onClick={() => handleSelectedId(movie.imdbID)}>
+    <li
+      onClick={() => {
+        handleSelectedId(movie.imdbID);
+        // handleSelectedMovie(movie.imdbID);
+      }}
+    >
       <img src={movie.Poster} alt="Not Found" />
       <h3>{movie.Title}</h3>
       <div>
@@ -95,13 +77,20 @@ function ToggleBtn({ children, setIsOpen }) {
   );
 }
 
-function SearchedMovies({ movies, isLoading, error, handleSelectedId }) {
+function SearchedMovies({
+  movies,
+  isLoading,
+  error,
+  handleSelectedId,
+  handleSelectedMovie,
+}) {
   const [isOpen1, setIsOpen1] = useState(true);
   const renderMoviesCard = movies?.map((movie) => (
     <MovieCard
       movie={movie}
       key={movie.imdbID}
       handleSelectedId={handleSelectedId}
+      handleSelectedMovie={handleSelectedMovie}
     />
   ));
   return (
@@ -191,6 +180,22 @@ function SelectedMovieDetial({
     Director: director,
     Genre: genre,
   } = movieDetials;
+
+  const changePageTitle = function () {
+    if (!title) return;
+    document.title = title;
+
+    return function () {
+      document.title = "usePopcorn";
+    };
+  };
+
+  useEffect(changePageTitle, [title]);
+  function findFirstTrueElement(arr, watchedMovieID) {
+    for (const obj of arr) {
+      if (obj.imdbID === watchedMovieID) return true;
+    }
+  }
   useEffect(() => {
     async function fetchMovieDetials() {
       try {
@@ -235,7 +240,19 @@ function SelectedMovieDetial({
             <div className="rating">
               <Star maxRating={10} handleSetUserRating={setUserRating} />
               {userRating > 0 && (
-                <button className="btn-add">+ Add to list</button>
+                <button
+                  className="btn-add"
+                  onClick={() =>
+                    setWatched((prev) => {
+                      if (findFirstTrueElement(prev, movieDetials.imdbID))
+                        return [...prev];
+
+                      return [...prev, movieDetials];
+                    })
+                  }
+                >
+                  + Add to list
+                </button>
               )}
             </div>
             {/* <div className="rating">
@@ -287,12 +304,23 @@ export default function App() {
   const [error, setError] = useState(null);
   const [selectedMovieID, setSelectedMovieID] = useState(null);
   const [watched, setWatched] = useState([]);
-
-  // const reduce = function () {};
-  // const [reducer, dispatch] = useReducer(reduce, 0);
-
+  const [isWatched, setIsWatched] = useState(false);
   const handleMovieDetialClose = function () {
     setSelectedMovieID(null);
+  };
+
+  // const handleWatachedMovies = function (arr, watchedMovieID) {
+  //   setIsWatched(false);
+  //   console.log({ arr, watchedMovieID });
+  //   for (const obj of arr) {
+  //     if (obj.imdbID === watchedMovieID) return setIsWatched(true);
+  //   }
+  // };
+  const handleSelectedMovie = function (id) {
+    // console.log(id);
+    for (const watchedMovieList of watched) {
+      console.log(watchedMovieList.imdbID === id);
+    }
   };
   const handleSelectedId = function (id) {
     setSelectedMovieID((prevSelectedId) => (id === prevSelectedId ? null : id));
@@ -337,6 +365,7 @@ export default function App() {
             isLoading={isLoading}
             error={error}
             handleSelectedId={handleSelectedId}
+            handleSelectedMovie={handleSelectedMovie}
           />
         </Box>
         <Box>
