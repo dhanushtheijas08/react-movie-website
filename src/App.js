@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Star from "./Star";
 
 const key = "ec57ae9c";
@@ -13,11 +13,29 @@ function Logo() {
 }
 
 function Search({ handleMovieChange, tempMovieName }) {
+  const inputElement = useRef(null);
+
+  useEffect(function () {
+    inputElement.current.focus();
+    const inputFocus = function (event) {
+      if (
+        event.key === "Enter" &&
+        inputElement.current !== document.activeElement
+      )
+        inputElement.current.focus();
+    };
+
+    document.addEventListener("keypress", inputFocus);
+    return function () {
+      document.removeEventListener("keypress", inputFocus);
+    };
+  }, []);
   return (
     <input
       className="search"
       type="text"
       placeholder="Search movies..."
+      ref={inputElement}
       onChange={(e) => {
         handleMovieChange(e.target.value);
       }}
@@ -50,12 +68,11 @@ function NavBar({ children, handleMovieChange, tempMovieName }) {
   );
 }
 
-function MovieCard({ movie, handleSelectedId, handleSelectedMovie }) {
+function MovieCard({ movie, handleSelectedId }) {
   return (
     <li
       onClick={() => {
         handleSelectedId(movie.imdbID);
-        // handleSelectedMovie(movie.imdbID);
       }}
     >
       <img src={movie.Poster} alt="Not Found" />
@@ -114,9 +131,9 @@ function Box({ children }) {
 }
 
 function WatchedMoviesSummary({ watched }) {
-  const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
-  const avgUserRating = average(watched.map((movie) => movie.userRating));
-  const avgRuntime = average(watched.map((movie) => movie.runtime));
+  // const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
+  // const avgUserRating = average(watched.map((movie) => movie.userRating));
+  // const avgRuntime = average(watched.map((movie) => movie.runtime));
   return (
     <div className="summary">
       <h2>Movies you watched</h2>
@@ -125,28 +142,40 @@ function WatchedMoviesSummary({ watched }) {
           <span>#️⃣</span>
           <span>{watched.length} movies</span>
         </p>
-        <p>
+        {/* <p>
           <span>⭐️</span>
           <span>{avgImdbRating}</span>
-        </p>
-        <p>
+        </p> */}
+        {/* <p>
           <span>🌟</span>
           <span>{avgUserRating}</span>
         </p>
         <p>
           <span>⏳</span>
           <span>{avgRuntime} min</span>
-        </p>
+        </p> */}
       </div>
     </div>
   );
 }
 
-function WatchedMovies({ watched }) {
+function WatchedMovies({ watched, setWatched }) {
   const [isOpen2, setIsOpen2] = useState(true);
 
+  function handleSelectedId(id) {
+    setWatched((prev) => {
+      const updatedMovieList = prev.filter(
+        (movieList) => movieList.imdbID !== id
+      );
+      return updatedMovieList;
+    });
+  }
   const renderWatchedMovies = watched?.map((movie) => (
-    <MovieCard movie={movie} key={movie.imdbID} />
+    <MovieCard
+      movie={movie}
+      key={movie.imdbID}
+      handleSelectedId={handleSelectedId}
+    />
   ));
   return (
     <>
@@ -154,7 +183,9 @@ function WatchedMovies({ watched }) {
       {isOpen2 && (
         <>
           <WatchedMoviesSummary watched={watched} />
-          <ul className="list">{renderWatchedMovies}</ul>
+          <ul className="list list-movies watched-movies">
+            {renderWatchedMovies}
+          </ul>
         </>
       )}
     </>
@@ -306,8 +337,6 @@ export default function App() {
   const [watched, setWatched] = useState(function () {
     const storedMovieList = localStorage.getItem("watchedMoviesList");
     const moviesList = JSON.parse(storedMovieList);
-    console.log(moviesList.Title);
-
     return moviesList;
   });
   // const [isWatched, setIsWatched] = useState(false);
@@ -401,7 +430,7 @@ export default function App() {
               handleMovieDetialClose={handleMovieDetialClose}
             />
           ) : (
-            <WatchedMovies watched={watched} />
+            <WatchedMovies watched={watched} setWatched={setWatched} />
           )}
         </Box>
       </Main>
