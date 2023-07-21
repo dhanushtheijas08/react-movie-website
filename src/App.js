@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
+import Star from "./Star";
 
 const tempWatchedData = [
   {
@@ -152,9 +153,8 @@ function WatchedMoviesSummary({ watched }) {
   );
 }
 
-function WatchedMovies() {
+function WatchedMovies({ watched }) {
   const [isOpen2, setIsOpen2] = useState(true);
-  const [watched, setWatched] = useState(tempWatchedData);
 
   const renderWatchedMovies = watched?.map((movie) => (
     <MovieCard movie={movie} key={movie.imdbID} />
@@ -172,8 +172,14 @@ function WatchedMovies() {
   );
 }
 
-function SelectedMovieDetial({ selectedMovieId, handleMovieDetialClose }) {
+function SelectedMovieDetial({
+  selectedMovieId,
+  handleMovieDetialClose,
+  setWatched,
+}) {
   const [movieDetials, setMovieDetials] = useState("");
+  const [userRating, setUserRating] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const {
     Title: title,
     Poster: poster,
@@ -187,41 +193,52 @@ function SelectedMovieDetial({ selectedMovieId, handleMovieDetialClose }) {
   } = movieDetials;
   useEffect(() => {
     async function fetchMovieDetials() {
-      const res = await fetch(
-        `https://www.omdbapi.com/?i=${selectedMovieId}&apikey=${key}`
-      );
-      const data = await res.json();
-      setMovieDetials(data);
+      try {
+        setIsLoading(true);
+        const res = await fetch(
+          `https://www.omdbapi.com/?i=${selectedMovieId}&apikey=${key}`
+        );
+        const data = await res.json();
+        setMovieDetials(data);
+      } catch (error) {
+      } finally {
+        setIsLoading(false);
+      }
     }
     fetchMovieDetials();
   }, [selectedMovieId]);
 
   return (
     <div className="details">
-      {/* {isLoading ? (
+      {isLoading ? (
         <Loader />
-      ) :  */}
-      (
-      <>
-        <header>
-          <button className="btn-back" onClick={handleMovieDetialClose}>
-            &larr;
-          </button>
-          <img src={poster} alt="movie poster" />
-          <div className="details-overview">
-            <h2>{title}</h2>
-            <p>
-              {released} &bull; {runtime}
-            </p>
-            <p>{genre}</p>
-            <p>
-              <span>⭐️</span>
-              {imdbRating} IMDb rating
-            </p>
-          </div>
-        </header>
-        <section>
-          {/* <div className="rating">
+      ) : (
+        <>
+          <header>
+            <button className="btn-back" onClick={handleMovieDetialClose}>
+              &larr;
+            </button>
+            <img src={poster} alt="movie poster" />
+            <div className="details-overview">
+              <h2>{title}</h2>
+              <p>
+                {released} &bull; {runtime}
+              </p>
+              <p>{genre}</p>
+              <p>
+                <span>⭐️</span>
+                {imdbRating} IMDb rating
+              </p>
+            </div>
+          </header>
+          <section>
+            <div className="rating">
+              <Star maxRating={10} handleSetUserRating={setUserRating} />
+              {userRating > 0 && (
+                <button className="btn-add">+ Add to list</button>
+              )}
+            </div>
+            {/* <div className="rating">
             {!isWatched ? (
               <>
                 <StarRating
@@ -241,14 +258,14 @@ function SelectedMovieDetial({ selectedMovieId, handleMovieDetialClose }) {
               </p>
             )}
           </div> */}
-          <p>
-            <em>{plot}</em>
-          </p>
-          <p>Starring {actors}</p>
-          <p>Directed by {director}</p>
-        </section>
-      </>
-      ){/* } */}
+            <p>
+              <em>{plot}</em>
+            </p>
+            <p>Starring {actors}</p>
+            <p>Directed by {director}</p>
+          </section>
+        </>
+      )}
     </div>
   );
 }
@@ -269,6 +286,11 @@ export default function App() {
   const [tempMovieName, setTempMovieName] = useState("");
   const [error, setError] = useState(null);
   const [selectedMovieID, setSelectedMovieID] = useState(null);
+  const [watched, setWatched] = useState([]);
+
+  // const reduce = function () {};
+  // const [reducer, dispatch] = useReducer(reduce, 0);
+
   const handleMovieDetialClose = function () {
     setSelectedMovieID(null);
   };
@@ -320,11 +342,12 @@ export default function App() {
         <Box>
           {selectedMovieID ? (
             <SelectedMovieDetial
+              setWatched={setWatched}
               selectedMovieId={selectedMovieID}
               handleMovieDetialClose={handleMovieDetialClose}
             />
           ) : (
-            <WatchedMovies />
+            <WatchedMovies watched={watched} />
           )}
         </Box>
       </Main>

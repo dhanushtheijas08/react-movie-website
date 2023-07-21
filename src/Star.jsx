@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function Star({ maxRating }) {
+export default function Star({ maxRating, handleSetUserRating }) {
   const [starCount, setStarCount] = useState(0);
   const [tempStarCount, setTempStarCount] = useState(0);
   const renderStars = Array.from({ length: maxRating }, (_, index) => {
@@ -15,7 +15,10 @@ export default function Star({ maxRating }) {
       <StarSvg
         key={index}
         starColor={starColor}
-        onClick={() => setStarCount(index + 1)}
+        onClick={() => {
+          setStarCount(index + 1);
+          handleSetUserRating(index + 1);
+        }}
         onMouseEnter={() => setTempStarCount(index + 1)}
         onMouseLeave={() => setTempStarCount(0)}
       />
@@ -24,7 +27,7 @@ export default function Star({ maxRating }) {
   return (
     <div className="flex">
       {renderStars}
-      <p className="text-4xl ml-10">Clicked : {tempStarCount || starCount}</p>
+      <p className="text-4xl ml-10">{tempStarCount || starCount}</p>
     </div>
   );
 }
