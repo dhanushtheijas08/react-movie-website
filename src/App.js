@@ -325,8 +325,8 @@ function ErrorMsg({ errorMessage }) {
 function Main({ children }) {
   return <main className="main">{children}</main>;
 }
-const average = (arr) =>
-  arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
+// const average = (arr) =>
+//   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
 export default function App() {
   const [movies, setMovies] = useState([]);
